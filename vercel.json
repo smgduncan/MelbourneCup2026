@@ -2,7 +2,7 @@
   "functions": {
     "api/*.py": {
       "includeFiles": "mc2026/**",
-      "maxDuration": 15
+      "maxDuration": 30
     }
   },
   "outputDirectory": "public"

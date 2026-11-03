@@ -5,7 +5,7 @@
   const refreshButton = $("#refresh-button");
   const trackSelect = $("#track-select");
   const budgetInput = $("#budget-input");
-  const state = { data: null, track: "soft", budget: 100, sort: "number", request: 0, offline: false };
+  const state = { data: null, track: "soft", budget: 100, sort: "number", request: 0, offline: false, reloading: false };
   const safe = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
   const pct = (value, digits = 1) => value == null || !Number.isFinite(Number(value)) ? "—" : `${(Number(value) * 100).toFixed(digits)}%`;
   const dollars = (value, digits = 2) => value == null || !Number.isFinite(Number(value)) ? "—" : `$${Number(value).toFixed(digits)}`;
@@ -204,6 +204,7 @@
   }
 
   async function refresh(fresh, quiet = false) {
+    if (state.reloading) return;
     if (fresh) setRefreshing(true);
     if (!quiet) setStatus(fresh ? "Checking saved odds & tips…" : "Updating analysis…");
     try {
@@ -226,6 +227,51 @@
     }
   }
 
+  async function reloadProviders(event) {
+    event.preventDefault();
+    if (state.reloading) return;
+    const keyInput = $("#reload-key");
+    const key = keyInput.value;
+    const status = $("#reload-status");
+    if (key.length < 32 || !$("#reload-confirm").checked) {
+      status.textContent = "Enter your admin key and confirm the Atlas import.";
+      return;
+    }
+    keyInput.value = "";
+    state.reloading = true;
+    ++state.request; // discard analysis reads started before this import
+    const button = $("#reload-button");
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+    refreshButton.disabled = trackSelect.disabled = budgetInput.disabled = true;
+    status.textContent = "Fetching and validating supported providers before writing to Atlas…";
+    let imported = false;
+    try {
+      const response = await fetch("/api/reload", {
+        method: "POST", cache: "no-store",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+        body: JSON.stringify({ confirm: true })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Provider import failed");
+      imported = true;
+      const sources = (result.sources || []).map((s) => `${s.name}: ${timeLabel(s.source_at)}`).join(" · ");
+      status.textContent = `${result.updated.length ? `Saved: ${result.updated.join(", ")}.` : "Sources checked; no newer odds or changed selections."} ${sources}. ${result.note}`;
+      $("#reload-confirm").checked = false;
+      await requestData(true);
+    } catch (error) {
+      status.textContent = imported
+        ? "Atlas import succeeded, but the page could not reload its analysis. Use Refresh odds & tips to try again."
+        : `Reload failed: ${error.message}. Last loaded page data has been kept.`;
+    } finally {
+      state.reloading = false;
+      button.disabled = false;
+      button.setAttribute("aria-busy", "false");
+      refreshButton.disabled = trackSelect.disabled = budgetInput.disabled = false;
+    }
+  }
+
+  $("#provider-reload-form").addEventListener("submit", reloadProviders);
   refreshButton.addEventListener("click", () => refresh(true));
   trackSelect.addEventListener("change", () => {
     state.track = trackSelect.value;

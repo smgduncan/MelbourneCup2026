@@ -74,6 +74,38 @@ Regenerate the offline fallback after updating data:
 .venv/bin/python -m mc2026 export
 ```
 
+### Reloading fresh provider data into Atlas
+
+Expand **Reload providers → Atlas** in the app. Enter your admin reload key,
+confirm the import, then click the reload button. This is a real external fetch,
+not a re-seed from `data/*.json`.
+
+Supported sources:
+
+- **Ladbrokes via Races.com.au:** complete win/place board, with the publisher's
+  capture timestamp.
+- **GoBet / Daryl Curnow:** the explicitly labelled best bet, each-way and
+  roughie selections, with the article publication timestamp.
+
+All source pages must pass race-day, runner-name, complete-field, price and
+timestamp validation before any odds or tips change. Atlas transactions keep
+the import atomic. Older odds remain as history; changed GoBet selections are
+archived in `tip_history`. Newer manually entered odds are not overwritten.
+Other bookmakers and tipsters are left unchanged. Pages may be unavailable or
+keep the same published data; checking a page does not make its prices newer.
+TAB/bet365 APIs and paywalled panels are not integrated by this control.
+
+Set a random **`MC2026_RELOAD_KEY`** (at least 32 characters) as a server-side
+Vercel environment variable, then redeploy. For local use put it in `.env`.
+Without it, the write endpoint is disabled. Use a password manager to keep the
+key; never put it in a URL, Git, frontend code or browser storage. The app clears
+the password field when submitting and sends it only in the authorization header.
+
+The endpoint is `POST /api/reload`, with `Authorization: Bearer <admin-key>`,
+`Content-Type: application/json` and body `{"confirm":true}`. An Atlas-backed
+60-second cooldown prevents overlapping reloads. It requires a replica set with
+transactions (Atlas M0 supports this), not a standalone Community server.
+
 ### Refreshing prices before the jump
 
 Bookmaker sites block automated scraping, so add fresh prices by hand or from a CSV (`horse,price`):

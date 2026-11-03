@@ -46,6 +46,19 @@
       <span id="connection-state" class="connection-state" aria-live="polite">Connecting…</span>
     </div>
 
+    <details class="provider-controls">
+      <summary>Reload providers → Atlas <span>Admin import</span></summary>
+      <p>Fetch the published Ladbrokes win/place board from Races.com.au and GoBet's best bet, each-way and roughie selections.
+        Validated updates are saved to Atlas, then this page refreshes. Other bookmakers and tipsters, including TAB and bet365, are not updated.</p>
+      <form id="provider-reload-form">
+        <label for="reload-key">Admin reload key</label>
+        <input id="reload-key" type="password" minlength="32" maxlength="256" autocomplete="off" required placeholder="Server-configured admin key">
+        <label class="reload-confirm"><input id="reload-confirm" type="checkbox" required> Save supported provider updates to Atlas and preserve history.</label>
+        <button id="reload-button" class="button button-refresh" type="submit">Reload providers → Atlas</button>
+      </form>
+      <p id="reload-status" role="status" aria-live="polite">Requires a server-configured admin key. Your key is not saved in this browser.</p>
+    </details>
+
     <section class="control-bar" aria-label="Analysis settings">
       <div class="control-intro"><span class="control-icon">⌁</span><span><strong>Shape your view</strong><small>Adjust the model to your assumptions</small></span></div>
       <label class="control-field">TRACK CONDITION

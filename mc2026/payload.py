@@ -58,5 +58,6 @@ def build_payload(db, default_track="soft"):
         "tipsters": tipsters_with_selections(db),
         "odds_not_captured": meta.get("odds_not_captured", []),
         "tips_not_captured": meta.get("tips_not_captured", []),
+        "provider_reload": db.meta.find_one({"_id": "provider_reload"}, {"_id": 0}),
         "plan": analysis.betting_plan(tracks[default_track]["metrics"], budget=100.0),
     }
