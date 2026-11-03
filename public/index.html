@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10251f">
+  <meta name="description" content="Melbourne Cup 2026 odds, tipster consensus, runner form and a flexible staking example.">
+  <title>Melbourne Cup 2026 | Field Notes</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Field Notes home">
+      <span class="brand-mark">FN</span>
+      <span>FIELD NOTES <small>RACING INTELLIGENCE</small></span>
+    </a>
+    <nav class="main-nav" aria-label="Main navigation">
+      <a href="#picks">Picks</a><a href="#odds">Odds</a><a href="#tips">Tipsters</a><a href="#form">Form</a><a href="#strategy">Strategy</a>
+    </nav>
+    <button id="refresh-button" class="button button-refresh" type="button">
+      <span class="refresh-icon" aria-hidden="true">↻</span><span>Refresh odds &amp; tips</span>
+    </button>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-dot"></span> THE RACE THAT STOPS A NATION</p>
+        <h1>Melbourne Cup <em>2026</em></h1>
+        <p class="hero-subtitle">The field, the market and the form, brought together in one considered view.</p>
+        <div class="race-meta" id="race-meta"><span>Flemington</span><i></i><span>3 November 2026</span><i></i><span>3:00pm AEDT</span></div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-top"><span class="live-label"><i></i> DATA SNAPSHOT</span><span class="season-label">RACE 7 · 3200M</span></div>
+        <p class="hero-card-title">Latest saved prices</p>
+        <p id="latest-price" class="hero-price">—</p>
+        <p id="updated-at" class="hero-updated">Waiting for data…</p>
+        <div class="condition-row"><span>Track assumption</span><strong id="track-summary">Soft</strong></div>
+      </div>
+    </section>
+
+    <div class="refresh-note" role="note">
+      <span class="note-icon" aria-hidden="true">↻</span>
+      <p><strong>What refresh does:</strong> re-reads the latest saved odds and tips from Atlas and recalculates the analysis. Bookmaker prices and tipster selections are source snapshots, they change only when new source data is added.</p>
+      <span id="connection-state" class="connection-state" aria-live="polite">Connecting…</span>
+    </div>
+
+    <section class="control-bar" aria-label="Analysis settings">
+      <div class="control-intro"><span class="control-icon">⌁</span><span><strong>Shape your view</strong><small>Adjust the model to your assumptions</small></span></div>
+      <label class="control-field">TRACK CONDITION
+        <select id="track-select" aria-label="Track condition">
+          <option value="good">Good</option><option value="soft" selected>Soft</option><option value="heavy">Heavy</option>
+        </select>
+      </label>
+      <label class="control-field budget-control">EXAMPLE BUDGET
+        <span class="budget-input-wrap"><span>$</span><input id="budget-input" type="number" min="1" max="1000000" step="10" value="100" inputmode="decimal" aria-label="Example betting budget in Australian dollars"></span>
+      </label>
+      <span id="settings-status" class="settings-status" aria-live="polite">Model blends market, tips and form</span>
+    </section>
+
+    <div id="page-error" class="page-error" role="alert" hidden></div>
+
+    <section id="picks" class="content-section">
+      <div class="section-heading">
+        <div><p class="eyebrow">01 / THE SHORTLIST</p><h2>Leading chances</h2></div>
+        <p class="section-description">A blended view: market 50% · tipsters 30% · form 20%</p>
+      </div>
+      <div id="pick-cards" class="pick-grid"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+      <div id="runner-alerts" class="runner-alerts"></div>
+    </section>
+
+    <section id="odds" class="content-section section-tinted">
+      <div class="section-heading">
+        <div><p class="eyebrow">02 / SHOP THE MARKET</p><h2>Odds comparison</h2></div>
+        <label class="sort-control">SORT BY
+          <select id="odds-sort" aria-label="Sort odds table">
+            <option value="number">Runner number</option><option value="model">Model rank</option><option value="best">Best AU price</option><option value="horse">Horse name</option>
+          </select>
+        </label>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>No.</th><th>Runner</th><th>Model</th><th>TAB</th><th>Ladbrokes</th><th>bet365 UK</th><th>Best AU</th><th>Best anywhere</th></tr></thead><tbody id="odds-rows"><tr><td colspan="8" class="table-empty">Loading current saved odds…</td></tr></tbody></table></div>
+      <div id="bookmaker-summary" class="bookmaker-strip"></div>
+      <p id="odds-gaps" class="data-caveat"></p>
+    </section>
+
+    <section id="tips" class="content-section">
+      <div class="section-heading">
+        <div><p class="eyebrow">03 / THE TIP SHEET</p><h2>Tipster consensus</h2></div>
+        <p id="tipster-count" class="section-description">— tipsters in the field</p>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Runner</th><th>Weighted points</th><th>Tip mentions</th><th>Expert mentions</th><th>Expert top picks</th><th>Share of tips</th></tr></thead><tbody id="tip-rows"><tr><td colspan="6" class="table-empty">Loading tips…</td></tr></tbody></table></div>
+      <details class="tipster-details"><summary>See individual tipsters and selections <span id="tipster-details-count"></span></summary><div id="tipster-grid" class="tipster-grid"></div></details>
+    </section>
+
+    <section id="form" class="content-section section-tinted">
+      <div class="section-heading">
+        <div><p class="eyebrow">04 / THE RUNNERS</p><h2>Form &amp; conditions</h2></div>
+        <p class="section-description">A snapshot of recent form, class and race-day fit</p>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>No.</th><th>Runner</th><th>Last starts</th><th>Career</th><th>Stamina</th><th>Track fit</th><th>Form score</th></tr></thead><tbody id="form-rows"><tr><td colspan="7" class="table-empty">Loading runner form…</td></tr></tbody></table></div>
+      <div id="race-notes" class="race-notes"></div>
+    </section>
+
+    <section id="strategy" class="content-section strategy-section">
+      <div class="section-heading">
+        <div><p class="eyebrow">05 / AN EXAMPLE, NOT ADVICE</p><h2>Staking illustration</h2></div>
+        <p id="plan-total" class="plan-total">Example budget: $100</p>
+      </div>
+      <p class="strategy-intro">A quarter-Kelly illustration on positive model overlays, with a capped share for win/each-way bets and a small exotic allocation. Adjust the budget above to recalculate.</p>
+      <div class="table-wrap"><table><thead><tr><th>Bet</th><th>Runner</th><th>Stake</th><th>Price</th><th>Bookmaker</th><th>Model chance</th><th>Model edge</th></tr></thead><tbody id="plan-rows"><tr><td colspan="7" class="table-empty">Loading example plan…</td></tr></tbody></table></div>
+      <p id="reserve-note" class="reserve-note"></p>
+    </section>
+
+    <section class="sources-footer">
+      <div><p class="eyebrow">A NOTE ON THE DATA</p><p>Odds are indicative snapshots, not live bookmaker prices. Check the price and terms directly with the bookmaker. Tips are attributed to their original publishers.</p></div>
+      <div id="source-links" class="source-links"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div><strong>FIELD NOTES <span>· MELBOURNE CUP 2026</span></strong><p>Independent analysis for information and entertainment only. Not financial advice.</p></div>
+    <p class="gambling-note">Bet responsibly. Set a limit you can afford to lose. Free, confidential support: <strong>Gambling Help Online, 1800 858 858</strong> · gamblinghelponline.org.au</p>
+  </footer>
+</body>
+</html>

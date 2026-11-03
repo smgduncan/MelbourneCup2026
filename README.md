@@ -52,6 +52,28 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 Set `MC2026_MONGO_URI` / `MC2026_DB` to use a different MongoDB server or database.
 
+## Web app and Atlas backend
+
+The responsive frontend lives in `public/`. Vercel serves the Python endpoints in
+`api/`, which read MongoDB Atlas using server-side `MC2026_MONGO_URI` and
+`MC2026_DB` environment variables. Never put database credentials in frontend
+files or commit `.env`.
+
+**Refresh odds & tips** sends an uncached `POST /api/analysis`, re-reads the
+latest saved odds and tips from Atlas, and recalculates the analysis. It does
+not scrape bookmakers or publishers. Add updated source data to Atlas first;
+refresh does not change source capture timestamps or imply that old data is live.
+If a refresh fails, the page keeps its last loaded data and displays an error.
+On initial API failure it falls back to the clearly labelled `public/data.json`.
+
+Track and example budget controls recalculate the analysis. Odds can be sorted,
+and the page includes tipster selections, runner form and an example staking plan.
+Regenerate the offline fallback after updating data:
+
+```bash
+.venv/bin/python -m mc2026 export
+```
+
 ### Refreshing prices before the jump
 
 Bookmaker sites block automated scraping, so add fresh prices by hand or from a CSV (`horse,price`):
@@ -68,6 +90,7 @@ Bookmaker sites block automated scraping, so add fresh prices by hand or from a 
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
+node tests/test_frontend.js
 ```
 
 ## Responsible gambling

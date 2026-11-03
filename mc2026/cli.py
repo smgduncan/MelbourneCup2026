@@ -5,32 +5,20 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from . import analysis, report, seed as seeding
-from .db import DB_NAME, MONGO_URI, get_db
+from . import analysis, payload, report, seed as seeding
+from .db import DB_NAME, get_db, safe_uri
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
 def run_analysis(db, track):
-    horses = list(db.horses.find({}, {"_id": 0}))
-    odds = list(db.odds.find({}, {"_id": 0}))
-    tips = list(db.tips.find({"scratched": False}, {"_id": 0}))
-    cfg = db.meta.find_one({"_id": "tip_config"})
-    result = analysis.analyse(horses, odds, tips, cfg["points"], cfg["tier_weight"], track=track)
-    by_name = {h["name"]: h for h in horses}
-    for m in result["metrics"]:
-        m["horse"] = by_name[m["name"]]
-    db.metrics.delete_many({})
-    db.metrics.insert_many([{k: v for k, v in m.items() if k != "horse"} for m in result["metrics"]])
-    db.bookmaker_summary.delete_many({})
-    db.bookmaker_summary.insert_many([dict(b) for b in result["bookmakers"]])
-    return result
+    return payload.run(db, track, persist=True)
 
 
 def cmd_seed(args):
     db = get_db()
     summary = seeding.seed(db)
-    print("Seeded %s/%s:" % (MONGO_URI, DB_NAME))
+    print("Seeded %s/%s:" % (safe_uri(), DB_NAME))
     for k, v in summary.items():
         print("  %s: %s" % (k, v))
 
@@ -41,7 +29,7 @@ def cmd_report(args):
     plan = analysis.betting_plan(result["metrics"], budget=args.budget)
     db.plans.replace_one({"_id": "latest"}, {"_id": "latest", "track": args.track, **json.loads(json.dumps(plan))}, upsert=True)
     race = db.race.find_one({"_id": "race"})
-    tipsters = seeding.load_json("tips.json")["tipsters"]
+    tipsters = payload.tipsters_with_selections(db)
     odds_gaps = (db.meta.find_one({"_id": "odds_not_captured"}) or {}).get("items", [])
     tip_gaps = (db.meta.find_one({"_id": "tips_not_captured"}) or {}).get("items", [])
     md = report.render(race, result, plan, tipsters, odds_gaps, tip_gaps)
@@ -60,6 +48,15 @@ def cmd_top(args):
         print("%-4d %-3d %-20s %7.1f%% %7.1f%% %7.1f%% %7.1f%%  $%.2f (%s)" % (
             m["model_rank"], m["no"], m["name"], 100 * m["model_prob"], 100 * m["market_prob"],
             100 * m["tip"]["share"], 100 * m["form_prob"], m["best_au_price"] or 0, ", ".join(m["best_au_bookmaker"])))
+
+
+def cmd_export(args):
+    db = get_db()
+    data = payload.build_payload(db, default_track=args.track)
+    out = Path(args.out) if args.out else ROOT / "public" / "data.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(data, indent=1, default=str), encoding="utf-8")
+    print("Exported %d horses x %d track conditions to %s" % (len(data["tracks"]["soft"]["metrics"]), len(data["tracks"]), out))
 
 
 def cmd_add_odds(args):
@@ -96,6 +93,11 @@ def main(argv=None):
         else:
             r.add_argument("-n", type=int, default=10)
         r.set_defaults(func=func)
+
+    e = sub.add_parser("export", help="Export analysis for all track conditions to public/data.json (offline fallback for the website)")
+    e.add_argument("--track", choices=["good", "soft", "heavy"], default="soft")
+    e.add_argument("--out")
+    e.set_defaults(func=cmd_export)
 
     a = sub.add_parser("add-odds", help="Record a fresh price snapshot for a bookmaker")
     a.add_argument("--bookmaker", required=True)
