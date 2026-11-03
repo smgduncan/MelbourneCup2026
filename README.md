@@ -2,6 +2,8 @@
 
 A small Python + MongoDB app that builds a database of the 2026 Lexus Melbourne Cup field, compares bookmaker odds, measures tipster consensus, scores form, and writes a report with top picks, the best bookie for each horse, and a suggested betting strategy.
 
+**Live app:** https://melbourne-cup-2026.vercel.app (Vercel, auto-deploys from `main`, backed by MongoDB Atlas)
+
 **Latest report:** [`reports/melbourne_cup_2026_report.md`](reports/melbourne_cup_2026_report.md)
 
 ## What's in the database
